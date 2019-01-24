@@ -1,0 +1,45 @@
+{
+  "name": "carbon8-server",
+  "version": "1.0.0",
+  "description": "Server for the Carbon8 water service!",
+  "author": "Robert Saunders",
+  "homepage": "https://github.com/RobertWSaunders/carbon8-server#readme",
+  "bugs": {
+    "url": "https://github.com/RobertWSaunders/carbon8-server/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RobertWSaunders/carbon8-server.git"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "main": "index.js",
+  "scripts": {
+    "dev": "NODE_ENV=development nodemon src/index.js",
+    "start": "NODE_ENV=production node src/index.js",
+    "style": "eslint --fix \"src/**/*.js\"",
+    "format": "prettier --write 'src/**/*.js'"
+  },
+  "engines": {
+    "node": "8.11.x",
+    "npm": "5.x"
+  },
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "socket.io": "^2.2.0",
+    "winston": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.6.0",
+    "eslint-config-prettier": "^3.0.1",
+    "nodemon": "^1.18.4",
+    "husky": "^1.0.0-rc.14",
+    "prettier": "^1.14.2",
+    "pretty-quick": "^1.6.0"
+  }
+}
