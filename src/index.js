@@ -1,8 +1,12 @@
 require("dotenv").config();
 
+const compression = require("compression");
+const bodyParser = require("body-parser");
 const logger = require("./utils/logger");
 const express = require("express");
+const helmet = require("helmet");
 const http = require("http");
+const cors = require("cors");
 const db = require("./db");
 
 const IS_PROD = process.env.NODE_ENV === "production";
@@ -15,7 +19,7 @@ IS_PROD
 db()
   .then(async (db) => {
     // Syncrhonize database
-    db.sequelize.sync({ force: true });
+    // db.sequelize.sync({ force: true });
 
     // Express server
     const app = express();
@@ -23,6 +27,19 @@ db()
 
     // HTTP server
     const server = http.createServer(app);
+
+    // Third party middleware
+    app.use(cors());
+    app.use(helmet());
+    app.use(compression());
+    app.use(bodyParser.json({ limit: "10mb" }));
+    app.use(bodyParser.urlencoded({ extended: true }));
+
+    // Auth API
+    const { authApi } = require("./auth")(db);
+
+    // Auth endpoints
+    app.use("/auth/", authApi());
 
     // Socket.IO setup
     const io = require("socket.io")(server, {

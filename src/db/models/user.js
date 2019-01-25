@@ -74,6 +74,12 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notEmpty: true
         }
+      },
+      stripeCustomerId: {
+        type: DataTypes.STRING,
+        validate: {
+          notEmpty: true
+        }
       }
     },
     {
@@ -145,7 +151,7 @@ module.exports = (sequelize, DataTypes) => {
         user
           .validPassword(password)
           .then(() => resolve(user))
-          .catch(() => reject("Invalid credentials!"));
+          .catch(() => reject("The credentials provided are invalid!"));
       });
     });
   };
