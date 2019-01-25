@@ -7,7 +7,7 @@ const socketEvents = {
 
 const socketActions = {};
 
-module.exports = (io, logger) => {
+module.exports = (io, logger, db) => {
   io.on(socketEvents.SOCKET_CONNECTION, (socket) => {
     logger.info("A socket has been connected!");
 

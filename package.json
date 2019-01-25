@@ -29,16 +29,21 @@
     "npm": "5.x"
   },
   "dependencies": {
+    "bcrypt": "^3.0.3",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
+    "pg": "^7.8.0",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^4.42.0",
     "socket.io": "^2.2.0",
     "winston": "^3.1.0"
   },
   "devDependencies": {
-    "eslint": "^5.6.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.12.1",
     "eslint-config-prettier": "^3.0.1",
-    "nodemon": "^1.18.4",
     "husky": "^1.0.0-rc.14",
+    "nodemon": "^1.18.4",
     "prettier": "^1.14.2",
     "pretty-quick": "^1.6.0"
   }
