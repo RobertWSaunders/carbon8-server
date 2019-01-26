@@ -21,10 +21,6 @@ module.exports = (db) => {
           "Could not find a user with the identifier given in the access token!"
         );
       }
-
-      return {
-        user
-      };
     });
   }
 
