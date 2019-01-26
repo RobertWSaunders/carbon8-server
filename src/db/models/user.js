@@ -71,12 +71,20 @@ module.exports = (sequelize, DataTypes) => {
       },
       scanCode: {
         type: DataTypes.STRING,
+        allowNull: false,
         validate: {
           notEmpty: true
         }
       },
       stripeCustomerId: {
         type: DataTypes.STRING,
+        validate: {
+          notEmpty: true
+        }
+      },
+      subscribed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
         validate: {
           notEmpty: true
         }

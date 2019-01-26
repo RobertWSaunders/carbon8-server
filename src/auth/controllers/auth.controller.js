@@ -1,3 +1,4 @@
+const randomize = require("randomatic");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
@@ -25,6 +26,10 @@ function createAccessToken(userId) {
   );
 }
 
+function createScanCode() {
+  return randomize("A0", 8);
+}
+
 function createResetPasswordHash(user) {
   return crypto
     .createHmac("sha256", AUTH_SECRET)
@@ -35,11 +40,14 @@ function createResetPasswordHash(user) {
 module.exports = (db) => {
   async function createUserAccount(firstName, lastName, email, password) {
     try {
+      const newScanCode = createScanCode();
+
       const user = await db.User.create({
         firstName,
         lastName,
         password,
-        email: email.toLowerCase()
+        email: email.toLowerCase(),
+        scanCode: newScanCode
       });
 
       const accessToken = createAccessToken(user.id);
@@ -58,6 +66,35 @@ module.exports = (db) => {
   async function authenticate(email, password) {
     try {
       const user = await db.User.authenticate(email.toLowerCase(), password);
+
+      const accessToken = createAccessToken(user.id);
+
+      return Promise.resolve({
+        user,
+        accessToken
+      });
+    } catch (err) {
+      return Promise.reject(new RestApiError(err));
+    }
+  }
+
+  async function authenticateWithScanCode(scanCode) {
+    try {
+      const user = await db.User.findOne({
+        where: { scanCode }
+      });
+
+      if (!user) {
+        return Promise.reject(
+          new NotFoundError("User not found for scan code!")
+        );
+      }
+
+      const newScanCode = createScanCode();
+
+      await user.update({
+        scanCode: newScanCode
+      });
 
       const accessToken = createAccessToken(user.id);
 
@@ -137,6 +174,7 @@ module.exports = (db) => {
     authenticate,
     createUserAccount,
     resetPasswordRequest,
-    updatePasswordRequest
+    updatePasswordRequest,
+    authenticateWithScanCode
   };
 };

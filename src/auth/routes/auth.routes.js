@@ -38,6 +38,18 @@ function validateSessionRequest(email, password) {
     });
 }
 
+function validateSessionFromScanCodeRequest(scanCode) {
+  if (!scanCode) {
+    return Promise.reject(
+      new ValidationError(
+        "The request does not have all the required fields! Please make sure to supply a scanCode in the request body."
+      )
+    );
+  }
+
+  return Promise.resolve();
+}
+
 function validateSignupRequest(firstName, lastName, email, password) {
   if (!firstName || !lastName || !email || !password) {
     return Promise.reject(
@@ -110,6 +122,25 @@ module.exports = (db) => {
       await validateSessionRequest(email, password);
 
       const { user, accessToken } = await authCtr.authenticate(email, password);
+
+      return res.status(200).json({
+        user,
+        accessToken
+      });
+    } catch (err) {
+      return sendError(res, err);
+    }
+  });
+
+  authApi.use("/sessionFromScanCode", async (req, res) => {
+    try {
+      const { scanCode } = req.body;
+
+      await validateSessionFromScanCodeRequest(scanCode);
+
+      const { user, accessToken } = await authCtr.authenticateWithScanCode(
+        scanCode
+      );
 
       return res.status(200).json({
         user,
