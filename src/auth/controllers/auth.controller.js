@@ -13,17 +13,11 @@ const ACCESS_TOKEN_EXPIRE_SECONDS =
 const RESET_PASSWORD_HASH_EXPIRE_SECONDS =
   process.env.RESET_PASSWORD_HASH_EXPIRE_SECONDS || 1200;
 
-function createAccessToken(userId) {
-  return jwt.sign(
-    {
-      userId
-    },
-    AUTH_SECRET,
-    {
-      expiresIn: ACCESS_TOKEN_EXPIRE_SECONDS,
-      issuer: JWT_ISSUER
-    }
-  );
+function createAccessToken(contents) {
+  return jwt.sign(contents, AUTH_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRE_SECONDS,
+    issuer: JWT_ISSUER
+  });
 }
 
 function createScanCode() {
@@ -50,11 +44,15 @@ module.exports = (db) => {
         scanCode: newScanCode
       });
 
-      const accessToken = createAccessToken(user.id);
+      const appAccessToken = createAccessToken({
+        userId: user.id,
+        appSessionId: newScanCode
+      });
 
       return Promise.resolve({
         user,
-        accessToken
+        appAccessToken,
+        scanCode: newScanCode
       });
     } catch (err) {
       return Promise.reject(
@@ -67,18 +65,28 @@ module.exports = (db) => {
     try {
       const user = await db.User.authenticate(email.toLowerCase(), password);
 
-      const accessToken = createAccessToken(user.id);
+      const newScanCode = createScanCode();
+
+      const appAccessToken = createAccessToken({
+        userId: user.id,
+        appSessionId: newScanCode
+      });
+
+      await user.update({
+        scanCode: newScanCode
+      });
 
       return Promise.resolve({
         user,
-        accessToken
+        appAccessToken,
+        scanCode: newScanCode
       });
     } catch (err) {
       return Promise.reject(new RestApiError(err));
     }
   }
 
-  async function authenticateWithScanCode(scanCode) {
+  async function authenticateWithScanCode(scanCode, fountainId) {
     try {
       const user = await db.User.findOne({
         where: { scanCode }
@@ -90,17 +98,31 @@ module.exports = (db) => {
         );
       }
 
+      const fountain = await db.Fountain.findOne({
+        where: { id: fountainId }
+      });
+
+      if (!fountain) {
+        return Promise.reject(
+          new NotFoundError("Fountain not found with supplied identifier!")
+        );
+      }
+
       const newScanCode = createScanCode();
 
       await user.update({
         scanCode: newScanCode
       });
 
-      const accessToken = createAccessToken(user.id);
+      const fountainAccessToken = createAccessToken({
+        fountainId,
+        userId: user.id,
+        appSessionId: newScanCode
+      });
 
       return Promise.resolve({
         user,
-        accessToken
+        fountainAccessToken
       });
     } catch (err) {
       return Promise.reject(new RestApiError(err));

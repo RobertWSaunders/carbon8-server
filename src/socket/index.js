@@ -9,6 +9,7 @@ const hsetAsync = promisify(redisClient.hset).bind(redisClient);
 const hdelAsync = promisify(redisClient.hdel).bind(redisClient);
 
 const SOCKET_AUTH_STATUS_REDIS_KEY = "socket_connections";
+const APP_SESSION_SOCKET_REDIS_KEY = "app_session_sockets";
 
 const SOCKET_AUTH_BOOT_TIME = 5000;
 
@@ -20,9 +21,12 @@ const socketEvents = {
 };
 
 const socketActions = {
-  AUTHENTICATE: "AUTHENTICATE",
+  AUTHENTICATE_FOUNTAIN: "AUTHENTICATE_FOUNTAIN",
+  AUTHENTICATE_APP: "AUTHENTICATE_APP",
 
-  TEST_EMIT: "TEST_EMIT"
+  TEST_EMIT: "TEST_EMIT",
+
+  TEST_EMIT_MOBILE: "TEST_EMIT_MOBILE"
 };
 
 async function getSocketAuthenticationStatus(socket) {
@@ -49,7 +53,10 @@ async function getSocketAuthenticationStatus(socket) {
 }
 
 module.exports = (io, logger, db) => {
-  const { verifyAccessToken } = require("../auth")(db);
+  const {
+    verifyFountainAccessToken,
+    verifyAppAccessToken
+  } = require("../auth")(db);
 
   // Connection and Authentication Logic
 
@@ -64,30 +71,76 @@ module.exports = (io, logger, db) => {
       JSON.stringify({ authenticated: false })
     );
 
-    socket.on(socketActions.AUTHENTICATE, async (data) => {
+    socket.use(async (event, next) => {
+      const eventType = event[0];
+
+      if (
+        eventType === socketActions.AUTHENTICATE_APP ||
+        eventType === socketActions.AUTHENTICATE_FOUNTAIN
+      ) {
+        return next();
+      }
+
+      const authStatus = await getSocketAuthenticationStatus(socket);
+
+      if (authStatus) return next();
+    });
+
+    socket.on(socketActions.AUTHENTICATE_FOUNTAIN, async (data) => {
       try {
-        await verifyAccessToken(data.accessToken);
+        const {
+          user,
+          fountain,
+          appSessionId
+        } = await verifyFountainAccessToken(data.accessToken);
 
         await hsetAsync(
           SOCKET_AUTH_STATUS_REDIS_KEY,
           socket.id,
-          JSON.stringify({ authenticated: true })
+          JSON.stringify({
+            authenticated: true,
+            info: {
+              userId: user.id,
+              fountainId: fountain.id,
+              appSessionId
+            }
+          })
         );
       } catch (err) {
         logger.error(
-          `Could not verify the access token provided for the socket with the identifier ${
+          `Could not verify the fountain access token provided for the socket with the identifier ${
             socket.id
           }!`
         );
       }
     });
 
-    socket.use(async (event, next) => {
-      if (event[0] === socketActions.AUTHENTICATE) return next();
+    socket.on(socketActions.AUTHENTICATE_APP, async (data) => {
+      try {
+        const { user, appSessionId } = await verifyAppAccessToken(
+          data.accessToken
+        );
 
-      const authStatus = await getSocketAuthenticationStatus(socket);
+        await hsetAsync(
+          SOCKET_AUTH_STATUS_REDIS_KEY,
+          socket.id,
+          JSON.stringify({
+            authenticated: true,
+            info: {
+              userId: user.id,
+              appSessonId
+            }
+          })
+        );
 
-      if (authStatus) return next();
+        await hsetAsync(APP_SESSION_SOCKET_REDIS_KEY, appSessionId, socket.id);
+      } catch (err) {
+        logger.error(
+          `Could not verify the app access token provided for the socket with the identifier ${
+            socket.id
+          }!`
+        );
+      }
     });
 
     setTimeout(async () => {
@@ -100,6 +153,8 @@ module.exports = (io, logger, db) => {
 
     socket.on(socketEvents.SOCKET_DISCONNECT, async (reason) => {
       await hdelAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
+
+      // TODO: Need to think of ways to flush app session hash.
 
       logger.warn(
         `The socket with the identifier ${socket.id} has been disconnected!`
@@ -115,6 +170,31 @@ module.exports = (io, logger, db) => {
           test: "Honey"
         }
       });
+    });
+
+    socket.on(socketActions.TEST_EMIT_MOBILE, async () => {
+      try {
+        const socketInfo = await hgetAsync(
+          SOCKET_AUTH_STATUS_REDIS_KEY,
+          socket.id
+        );
+
+        if (_.has(socketInfo, "info.appSessionId")) {
+          const appSocketId = await hgetAsync(
+            APP_SESSION_SOCKET_REDIS_KEY,
+            socketInfo.info.appSessionId
+          );
+
+          socket.to(appSocketId).send({
+            type: "TEST",
+            data: {
+              test: "Bobby"
+            }
+          });
+        }
+      } catch (err) {
+        logger.error("Something failed!");
+      }
     });
   });
 };

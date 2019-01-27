@@ -38,11 +38,11 @@ function validateSessionRequest(email, password) {
     });
 }
 
-function validateSessionFromScanCodeRequest(scanCode) {
-  if (!scanCode) {
+function validateSessionFromScanCodeRequest(scanCode, fountainId) {
+  if (!scanCode || !fountainId) {
     return Promise.reject(
       new ValidationError(
-        "The request does not have all the required fields! Please make sure to supply a scanCode in the request body."
+        "The request does not have all the required fields! Please make sure to supply a scanCode and a fountainId in the request body."
       )
     );
   }
@@ -121,11 +121,15 @@ module.exports = (db) => {
 
       await validateSessionRequest(email, password);
 
-      const { user, accessToken } = await authCtr.authenticate(email, password);
+      const { user, appAccessToken, scanCode } = await authCtr.authenticate(
+        email,
+        password
+      );
 
       return res.status(200).json({
         user,
-        accessToken
+        scanCode,
+        appAccessToken
       });
     } catch (err) {
       return sendError(res, err);
@@ -134,17 +138,18 @@ module.exports = (db) => {
 
   authApi.use("/sessionFromScanCode", async (req, res) => {
     try {
-      const { scanCode } = req.body;
+      const { scanCode, fountainId } = req.body;
 
-      await validateSessionFromScanCodeRequest(scanCode);
+      await validateSessionFromScanCodeRequest(scanCode, fountainId);
 
-      const { user, accessToken } = await authCtr.authenticateWithScanCode(
-        scanCode
-      );
+      const {
+        user,
+        fountainAccessToken
+      } = await authCtr.authenticateWithScanCode(scanCode, fountainId);
 
       return res.status(200).json({
         user,
-        accessToken
+        fountainAccessToken
       });
     } catch (err) {
       return sendError(res, err);
@@ -157,16 +162,16 @@ module.exports = (db) => {
 
       await validateSignupRequest(firstName, lastName, email, password);
 
-      const { user, accessToken } = await authCtr.createUserAccount(
-        firstName,
-        lastName,
-        email,
-        password
-      );
+      const {
+        user,
+        appAccessToken,
+        scanCode
+      } = await authCtr.createUserAccount(firstName, lastName, email, password);
 
       return res.status(200).json({
         user,
-        accessToken
+        scanCode,
+        appAccessToken
       });
     } catch (err) {
       return sendError(res, err);
