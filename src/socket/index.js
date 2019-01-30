@@ -130,7 +130,7 @@ module.exports = (io, logger, db) => {
             info: {
               appSocketConnection: true,
               userId: user.id,
-              appSessonId
+              appSessionId
             }
           })
         );
@@ -160,11 +160,11 @@ module.exports = (io, logger, db) => {
 
       if (
         _.has(socketAuthInfo, "info.appSocketConnection") &&
-        _.has(socketAuthInfo, "info.appSessonId")
+        _.has(socketAuthInfo, "info.appSessionId")
       ) {
         await hdelAsync(
           APP_SESSION_SOCKET_REDIS_KEY,
-          socketAuthInfo.appSessionId
+          socketAuthInfo.info.appSessionId
         );
       }
 
@@ -188,10 +188,9 @@ module.exports = (io, logger, db) => {
 
     socket.on(socketActions.TEST_EMIT_MOBILE, async () => {
       try {
-        const socketInfo = await hgetAsync(
-          SOCKET_AUTH_STATUS_REDIS_KEY,
-          socket.id
-        );
+        const reply = await hgetAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
+
+        const socketInfo = JSON.parse(reply);
 
         if (_.has(socketInfo, "info.appSessionId")) {
           const appSocketId = await hgetAsync(
@@ -202,7 +201,7 @@ module.exports = (io, logger, db) => {
           socket.to(appSocketId).send({
             type: "TEST",
             data: {
-              test: "Bobby"
+              test: "Your drink is dispensing!"
             }
           });
         }
