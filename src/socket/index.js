@@ -100,8 +100,9 @@ module.exports = (io, logger, db) => {
           JSON.stringify({
             authenticated: true,
             info: {
-              userId: user.id,
+              fountainSocketConnection: true,
               fountainId: fountain.id,
+              userId: user.id,
               appSessionId
             }
           })
@@ -127,6 +128,7 @@ module.exports = (io, logger, db) => {
           JSON.stringify({
             authenticated: true,
             info: {
+              appSocketConnection: true,
               userId: user.id,
               appSessonId
             }
@@ -152,9 +154,21 @@ module.exports = (io, logger, db) => {
     }, SOCKET_AUTH_BOOT_TIME);
 
     socket.on(socketEvents.SOCKET_DISCONNECT, async (reason) => {
-      await hdelAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
+      const reply = await hgetAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
 
-      // TODO: Need to think of ways to flush app session hash.
+      const socketAuthInfo = JSON.parse(reply);
+
+      if (
+        _.has(socketAuthInfo, "info.appSocketConnection") &&
+        _.has(socketAuthInfo, "info.appSessonId")
+      ) {
+        await hdelAsync(
+          APP_SESSION_SOCKET_REDIS_KEY,
+          socketAuthInfo.appSessionId
+        );
+      }
+
+      await hdelAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
 
       logger.warn(
         `The socket with the identifier ${socket.id} has been disconnected!`

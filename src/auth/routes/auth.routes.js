@@ -114,6 +114,7 @@ module.exports = (db) => {
   const authApi = Router();
 
   const authCtr = require("../controllers/auth.controller")(db);
+  const { requestAuthMiddleware } = require("../")(db);
 
   authApi.use("/session", async (req, res) => {
     try {
@@ -121,14 +122,17 @@ module.exports = (db) => {
 
       await validateSessionRequest(email, password);
 
-      const { user, appAccessToken, scanCode } = await authCtr.authenticate(
-        email,
-        password
-      );
+      const {
+        user,
+        appAccessToken,
+        scanCode,
+        appSessionId
+      } = await authCtr.authenticate(email, password);
 
       return res.status(200).json({
         user,
         scanCode,
+        appSessionId,
         appAccessToken
       });
     } catch (err) {
@@ -156,6 +160,52 @@ module.exports = (db) => {
     }
   });
 
+  authApi.use(
+    "/sessionFromAccessToken",
+    requestAuthMiddleware(),
+    async (req, res) => {
+      try {
+        const { user } = req;
+
+        const {
+          appAccessToken,
+          scanCode,
+          appSessionId
+        } = await authCtr.sessionFromAccessToken(user);
+
+        return res.status(200).json({
+          user,
+          scanCode,
+          appSessionId,
+          appAccessToken
+        });
+      } catch (err) {
+        return sendError(res, err);
+      }
+    }
+  );
+
+  authApi.use(
+    "/getNewScanCodeForSession",
+    requestAuthMiddleware(),
+    async (req, res) => {
+      try {
+        const { user, appSessionId } = req;
+
+        const { scanCode } = await authCtr.getNewScanCodeForSession(
+          user,
+          appSessionId
+        );
+
+        return res.status(200).json({
+          scanCode
+        });
+      } catch (err) {
+        return sendError(res, err);
+      }
+    }
+  );
+
   authApi.use("/signup", async (req, res) => {
     try {
       const { firstName, lastName, email, password } = req.body;
@@ -165,12 +215,14 @@ module.exports = (db) => {
       const {
         user,
         appAccessToken,
-        scanCode
+        scanCode,
+        appSessionId
       } = await authCtr.createUserAccount(firstName, lastName, email, password);
 
       return res.status(200).json({
         user,
         scanCode,
+        appSessionId,
         appAccessToken
       });
     } catch (err) {

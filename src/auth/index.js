@@ -5,7 +5,31 @@ const authRoutes = require("./routes/auth.routes");
 
 const { AUTH_SECRET } = process.env;
 
+function getBearer(req) {
+  if (!req.headers || !req.headers.authorization) return false;
+  const split = req.headers.authorization.split(" ");
+  if (split.length !== 2 || split[0] !== "Bearer") return false;
+  return split[1];
+}
+
 module.exports = (db) => {
+  function requestAuthMiddleware() {
+    return async (req, res, next) => {
+      const token = getBearer(req);
+
+      try {
+        const { user, appSessionId } = await verifyAppAccessToken(token);
+
+        req.user = user;
+        req.appSessionId = appSessionId;
+
+        next();
+      } catch (err) {
+        return res.status(401).json("Invalid access token!");
+      }
+    };
+  }
+
   async function verifyAppAccessToken(appAccessToken) {
     if (!appAccessToken) throw new Error("No app access token provided!");
 
@@ -86,6 +110,7 @@ module.exports = (db) => {
   return {
     authApi,
     verifyAppAccessToken,
+    requestAuthMiddleware,
     verifyFountainAccessToken
   };
 };

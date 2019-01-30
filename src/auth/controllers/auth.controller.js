@@ -20,8 +20,20 @@ function createAccessToken(contents) {
   });
 }
 
+function createAppSessionId() {
+  return randomize("A0", 4);
+}
+
 function createScanCode() {
   return randomize("A0", 8);
+}
+
+function getPersistedScanCodeFromSentScanCode(scanCode) {
+  return scanCode.substring(0, 8);
+}
+
+function getAppSessionIdFromSentScanCode(scanCode) {
+  return scanCode.substring(8, 12);
 }
 
 function createResetPasswordHash(user) {
@@ -34,25 +46,30 @@ function createResetPasswordHash(user) {
 module.exports = (db) => {
   async function createUserAccount(firstName, lastName, email, password) {
     try {
-      const newScanCode = createScanCode();
+      const newAppSessionId = createAppSessionId();
+
+      const persistedScanCode = createScanCode();
 
       const user = await db.User.create({
         firstName,
         lastName,
         password,
         email: email.toLowerCase(),
-        scanCode: newScanCode
+        scanCode: persistedScanCode
       });
 
       const appAccessToken = createAccessToken({
         userId: user.id,
-        appSessionId: newScanCode
+        appSessionId: newAppSessionId
       });
+
+      const sentScanCode = `${persistedScanCode}${newAppSessionId}`;
 
       return Promise.resolve({
         user,
         appAccessToken,
-        scanCode: newScanCode
+        scanCode: sentScanCode,
+        appSessionId: newAppSessionId
       });
     } catch (err) {
       return Promise.reject(
@@ -65,21 +82,54 @@ module.exports = (db) => {
     try {
       const user = await db.User.authenticate(email.toLowerCase(), password);
 
-      const newScanCode = createScanCode();
+      const newAppSessionId = createAppSessionId();
+
+      const persistedScanCode = createScanCode();
 
       const appAccessToken = createAccessToken({
         userId: user.id,
-        appSessionId: newScanCode
+        appSessionId: newAppSessionId
       });
 
       await user.update({
-        scanCode: newScanCode
+        scanCode: persistedScanCode
       });
+
+      const sentScanCode = `${persistedScanCode}${newAppSessionId}`;
 
       return Promise.resolve({
         user,
         appAccessToken,
-        scanCode: newScanCode
+        scanCode: sentScanCode,
+        appSessionId: newAppSessionId
+      });
+    } catch (err) {
+      return Promise.reject(new RestApiError(err));
+    }
+  }
+
+  async function sessionFromAccessToken(user) {
+    try {
+      const newAppSessionId = createAppSessionId();
+
+      const persistedScanCode = createScanCode();
+
+      const appAccessToken = createAccessToken({
+        userId: user.id,
+        appSessionId: newAppSessionId
+      });
+
+      await user.update({
+        scanCode: persistedScanCode
+      });
+
+      const sentScanCode = `${persistedScanCode}${newAppSessionId}`;
+
+      return Promise.resolve({
+        user,
+        appAccessToken,
+        scanCode: sentScanCode,
+        appSessionId: newAppSessionId
       });
     } catch (err) {
       return Promise.reject(new RestApiError(err));
@@ -88,8 +138,10 @@ module.exports = (db) => {
 
   async function authenticateWithScanCode(scanCode, fountainId) {
     try {
+      const persistedScanCode = getPersistedScanCodeFromSentScanCode(scanCode);
+
       const user = await db.User.findOne({
-        where: { scanCode }
+        where: { scanCode: persistedScanCode }
       });
 
       if (!user) {
@@ -108,21 +160,41 @@ module.exports = (db) => {
         );
       }
 
-      const newScanCode = createScanCode();
+      const appSessionId = getAppSessionIdFromSentScanCode(scanCode);
+
+      const newPersistedScanCode = createScanCode();
 
       await user.update({
-        scanCode: newScanCode
+        scanCode: newPersistedScanCode
       });
 
       const fountainAccessToken = createAccessToken({
         fountainId,
         userId: user.id,
-        appSessionId: newScanCode
+        appSessionId: appSessionId
       });
 
       return Promise.resolve({
         user,
         fountainAccessToken
+      });
+    } catch (err) {
+      return Promise.reject(new RestApiError(err));
+    }
+  }
+
+  async function getNewScanCodeForSession(user, appSessionId) {
+    try {
+      const persistedScanCode = createScanCode();
+
+      await user.update({
+        scanCode: persistedScanCode
+      });
+
+      const sentScanCode = `${persistedScanCode}${appSessionId}`;
+
+      return Promise.resolve({
+        scanCode: sentScanCode
       });
     } catch (err) {
       return Promise.reject(new RestApiError(err));
@@ -197,6 +269,8 @@ module.exports = (db) => {
     createUserAccount,
     resetPasswordRequest,
     updatePasswordRequest,
-    authenticateWithScanCode
+    authenticateWithScanCode,
+    getNewScanCodeForSession,
+    sessionFromAccessToken
   };
 };
