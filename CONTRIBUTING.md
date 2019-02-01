@@ -1,6 +1,6 @@
 # Contributing
 
-> So you want to contribute to the Carbon8 server?
+> So you want to contribute to the Carbon8?
 
 A general guide to contributing in this repository is:
 
@@ -27,6 +27,6 @@ When creating a pull request please be mindful of the following things:
 Everything that you work on should be attached to an issue in the repository.
 This gives everyone the opportunity to see what people are working on and to
 discuss the issue at hand. You can create issues
-[here](https://github.com/RobertWSaunders/carbon8-server/issues).
+[here](https://github.com/RobertWSaunders/carbon8-mono/issues).
 
 > NOTE: When creating issues please use the provided issue template.

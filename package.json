@@ -1,60 +1,44 @@
 {
-  "name": "carbon8-server",
+  "name": "carbon8-mono",
   "version": "1.0.0",
-  "description": "Server for the Carbon8 water service!",
+  "description": "Server and web client for the Carbon8 water service!",
   "author": "Robert Saunders",
-  "homepage": "https://github.com/RobertWSaunders/carbon8-server#readme",
+  "homepage": "https://github.com/RobertWSaunders/carbon8-mono#readme",
   "bugs": {
-    "url": "https://github.com/RobertWSaunders/carbon8-server/issues"
+    "url": "https://github.com/RobertWSaunders/carbon8-mono/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RobertWSaunders/carbon8-server.git"
+    "url": "https://github.com/RobertWSaunders/carbon8-mono.git"
   },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
   },
-  "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/index.js",
-    "start": "NODE_ENV=production node src/index.js",
-    "style": "eslint --fix \"src/**/*.js\"",
-    "format": "prettier --write 'src/**/*.js'"
+    "bootstrap": "npm install --unsafe-perm || ((if [ -f npm-debug.log ]; then cat npm-debug.log; fi) && false) && lerna bootstrap --no-ci",
+    "build": "lerna run build --stream",
+    "dev": "lerna run dev --scope server --scope client --stream --parallel",
+    "start": "lerna run start --scope server --stream",
+    "style": "eslint --fix \"packages/server/**/*.js\" ; eslint --fix \"packages/client/**/*.js\"",
+    "format": "prettier --write 'packages/server/**/*.js' && prettier --write 'packages/client/**/*.js'"
   },
   "engines": {
     "node": "8.11.x",
     "npm": "5.x"
   },
-  "dependencies": {
-    "bcrypt": "^3.0.3",
-    "body-parser": "^1.18.3",
-    "compression": "^1.7.3",
-    "cors": "^2.8.5",
-    "crypto": "^1.0.1",
-    "dotenv": "^6.0.0",
-    "express": "^4.16.3",
-    "helmet": "^3.15.0",
-    "jsonwebtoken": "^8.4.0",
-    "lodash": "^4.17.11",
-    "pg": "^7.8.0",
-    "pg-hstore": "^2.3.2",
-    "randomatic": "^3.1.1",
-    "redis": "^2.8.0",
-    "sequelize": "^4.42.0",
-    "socket.io": "^2.2.0",
-    "stripe": "^6.22.0",
-    "validator": "^10.11.0",
-    "winston": "^3.1.0"
-  },
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.12.1",
+    "babel-eslint": "^9.0.0",
+    "eslint": "^5.6.0",
+    "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^3.0.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.11.1",
     "husky": "^1.0.0-rc.14",
-    "nodemon": "^1.18.4",
+    "lerna": "^3.4.0",
     "prettier": "^1.14.2",
     "pretty-quick": "^1.6.0"
   }

@@ -1,6 +1,6 @@
-# Carbon8 Server
+# Carbon8 Mono
 
-Server for the Carbon8 water service!
+Server and web client for the Carbon8 water service!
 
 ## Usage
 
@@ -37,7 +37,7 @@ A general guide to contribute in this repository is:
 5. Submit a pull request :rocket:
 
 > See more information in our [contributing
-> guide](https://github.com/RobertWSaunders/carbon8-server/blob/master/CONTRIBUTING.md).
+> guide](https://github.com/RobertWSaunders/carbon8-mono/blob/master/CONTRIBUTING.md).
 
 ## License
 
@@ -61,4 +61,4 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 > See the entire license in our [license
-> file](https://github.com/RobertWSaunders/carbon8-server/blob/master/LICENSE).
+> file](https://github.com/RobertWSaunders/carbon8-mono/blob/master/LICENSE).

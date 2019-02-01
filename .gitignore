@@ -2,6 +2,7 @@ node_modules
 .idea
 *.log
 .env
+packages/client/bundle/*
 .DS_STORE
 package-lock.json
 .vscode

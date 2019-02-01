@@ -1,6 +1,11 @@
 parser: babel-eslint
+plugins:
+  - react
 extends:
   - prettier
+  - plugin:react/recommended
+parserOptions:
+  ecmaFeatures: { jsx: true }
 env:
   browser: true
   es6: true
@@ -28,8 +33,18 @@ rules:
   multiline-ternary: [2, always-multiline]
   key-spacing: [2, { mode: strict }]
   arrow-parens: [2, always]
+  react/jsx-wrap-multilines: 2
   prefer-const: 2
   no-debugger: 2
+  react/jsx-filename-extension: 0
+  react/jsx-curly-brace-presence: 0
+  react/prop-types: 0
+  react/destructuring-assignment: 0
+  react/style-prop-object: 0
+  react/sort-comp: 0
+  react/display-name: 0
+  import/prefer-default-export: 0
   no-nested-ternary: 0
   camelcase: 0
   no-unused-vars: 0
+  import/order: 0
