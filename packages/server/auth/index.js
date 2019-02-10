@@ -1,7 +1,4 @@
-const Router = require("express").Router;
 const jwt = require("jsonwebtoken");
-
-const authRoutes = require("./routes/auth.routes");
 
 const { AUTH_SECRET } = process.env;
 
@@ -99,16 +96,7 @@ module.exports = (db) => {
     );
   }
 
-  function authApi() {
-    const authApi = Router();
-
-    authApi.use("/", authRoutes(db));
-
-    return authApi;
-  }
-
   return {
-    authApi,
     verifyAppAccessToken,
     requestAuthMiddleware,
     verifyFountainAccessToken

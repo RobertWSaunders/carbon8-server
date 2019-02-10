@@ -38,13 +38,9 @@ db()
     app.use(helmet());
     app.use(compression());
     app.use(bodyParser.json({ limit: "10mb" }));
-    app.use(bodyParser.urlencoded({ extended: true }));
 
-    // Auth API
-    const { authApi } = require("./auth")(db);
-
-    // Auth endpoints
-    app.use("/auth/", authApi());
+    // REST API
+    app.use("/api/", require("./api")(db));
 
     // Socket.IO setup
     const io = require("socket.io")(server, {

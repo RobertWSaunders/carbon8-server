@@ -114,9 +114,10 @@ module.exports = (db) => {
   const authApi = Router();
 
   const authCtr = require("../controllers/auth.controller")(db);
-  const { requestAuthMiddleware } = require("../")(db);
 
-  authApi.use("/session", async (req, res) => {
+  const { requestAuthMiddleware } = require("../../auth")(db);
+
+  authApi.post("/session", async (req, res) => {
     try {
       const { email, password } = req.body;
 
@@ -140,7 +141,7 @@ module.exports = (db) => {
     }
   });
 
-  authApi.use("/sessionFromScanCode", async (req, res) => {
+  authApi.post("/sessionFromScanCode", async (req, res) => {
     try {
       const { scanCode, fountainId } = req.body;
 
@@ -160,7 +161,7 @@ module.exports = (db) => {
     }
   });
 
-  authApi.use(
+  authApi.post(
     "/sessionFromAccessToken",
     requestAuthMiddleware(),
     async (req, res) => {
@@ -185,7 +186,7 @@ module.exports = (db) => {
     }
   );
 
-  authApi.use(
+  authApi.post(
     "/getNewScanCodeForSession",
     requestAuthMiddleware(),
     async (req, res) => {
@@ -206,7 +207,7 @@ module.exports = (db) => {
     }
   );
 
-  authApi.use("/signup", async (req, res) => {
+  authApi.post("/signup", async (req, res) => {
     try {
       const { firstName, lastName, email, password } = req.body;
 
@@ -230,7 +231,7 @@ module.exports = (db) => {
     }
   });
 
-  authApi.use(`/createResetHash`, async (req, res) => {
+  authApi.post(`/createResetHash`, async (req, res) => {
     try {
       const { email } = req.body;
 
@@ -244,7 +245,7 @@ module.exports = (db) => {
     }
   });
 
-  authApi.use(`/updatePasswordForReset`, async (req, res) => {
+  authApi.post(`/updatePasswordForReset`, async (req, res) => {
     try {
       const { password, resetHash } = req.body;
 
