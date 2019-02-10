@@ -1,19 +1,23 @@
 module.exports = (sequelize, DataTypes) => {
-  const FountainDispense = sequelize.define("FountainDispense", {
-    waterTypeDispensed: {
+  const UserWaterIntake = sequelize.define("UserWaterIntake", {
+    intakeWaterType: {
       type: DataTypes.ENUM("SPARKLING", "FLAT"),
       allowNull: false
     },
-    amountDispensed: {
+    intakeAmount: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    dateDispensed: {
+    intakeDate: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: new Date()
+    },
+    intakeSource: {
+      type: DataTypes.ENUM("FOUNTAIN", "MANUAL"),
+      allowNull: false
     }
   });
 
-  return FountainDispense;
+  return UserWaterIntake;
 };

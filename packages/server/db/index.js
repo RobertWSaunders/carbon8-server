@@ -16,7 +16,8 @@ const database = async () => {
   const db = {
     User: sequelize.import("./models/user"),
     Fountain: sequelize.import("./models/fountain"),
-    FountainDispense: sequelize.import("./models/fountain-dispense")
+    HydrationGoal: sequelize.import("./models/hydration-goal"),
+    UserWaterIntake: sequelize.import("./models/user-water-intake")
   };
 
   Object.keys(db).forEach((modelName) => {

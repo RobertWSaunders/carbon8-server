@@ -88,6 +88,11 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notEmpty: true
         }
+      },
+      admin: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
       }
     },
     {
@@ -164,11 +169,15 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
-  User.associate = ({ Fountain, FountainDispense }) => {
+  User.associate = ({ Fountain, UserWaterIntake, HydrationGoal }) => {
+    User.hasMany(HydrationGoal, {
+      foreignKey: "userId"
+    });
+
     User.belongsToMany(Fountain, {
-      through: FountainDispense,
+      through: UserWaterIntake,
       foreignKey: { name: "userId", allowNull: false },
-      otherKey: { name: "fountainId", allowNull: false }
+      otherKey: { name: "fountainId", allowNull: true }
     });
   };
 

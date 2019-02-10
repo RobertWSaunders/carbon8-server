@@ -14,13 +14,31 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notEmpty: true
       }
+    },
+    locationLatitude: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    locationLongitude: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sparklingSupported: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    needsMaintenance: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   });
 
-  Fountain.associate = ({ User, FountainDispense }) => {
+  Fountain.associate = ({ User, UserWaterIntake }) => {
     Fountain.belongsToMany(User, {
-      through: FountainDispense,
-      foreignKey: { name: "fountainId", allowNull: false },
+      through: UserWaterIntake,
+      foreignKey: { name: "fountainId", allowNull: true },
       otherKey: { name: "userId", allowNull: false }
     });
   };
