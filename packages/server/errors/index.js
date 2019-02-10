@@ -1,3 +1,5 @@
+const { omit } = require("lodash");
+
 const REST_ERROR_CODES = {
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
 
@@ -7,6 +9,15 @@ const REST_ERROR_CODES = {
 
   INVALID_CREDENTIALS: "INVALID_CREDENTIALS"
 };
+
+function sendError(res, err) {
+  if (!err.status || !err.code) {
+    const apiErr = new RestApiError(err);
+    return res.status(apiErr.status).json(apiErr);
+  }
+
+  return res.status(err.status).json(omit(err, "status"));
+}
 
 class RestApiError extends Error {
   constructor(message, status, code) {
@@ -47,5 +58,7 @@ module.exports = {
 
   RestApiError,
   NotFoundError,
-  ValidationError
+  ValidationError,
+
+  sendError
 };

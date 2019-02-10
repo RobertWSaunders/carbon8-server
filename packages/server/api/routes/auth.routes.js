@@ -1,5 +1,4 @@
 const Router = require("express").Router;
-const { omit } = require("lodash");
 
 const {
   validateName,
@@ -7,16 +6,7 @@ const {
   validatePassword
 } = require("../../utils/custom-validator");
 
-const { RestApiError, ValidationError } = require("../../errors");
-
-function sendError(res, err) {
-  if (!err.status || !err.code) {
-    const apiErr = new RestApiError(err);
-    return res.status(apiErr.status).json(apiErr);
-  }
-
-  return res.status(err.status).json(omit(err, "status"));
-}
+const { ValidationError, sendError } = require("../../errors");
 
 // Request Validation Methods
 
