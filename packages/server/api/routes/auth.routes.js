@@ -151,7 +151,7 @@ module.exports = (db) => {
     }
   });
 
-  authApi.post(
+  authApi.get(
     "/sessionFromAccessToken",
     requestAuthMiddleware(),
     async (req, res) => {
