@@ -11,22 +11,18 @@ const hdelAsync = promisify(redisClient.hdel).bind(redisClient);
 const SOCKET_AUTH_STATUS_REDIS_KEY = "socket_connections";
 const APP_SESSION_SOCKET_REDIS_KEY = "app_session_sockets";
 
-const SOCKET_AUTH_BOOT_TIME = 5000;
+const SOCKET_AUTH_BOOT_TIME = 1000;
 
 const socketEvents = {
   SOCKET_CONNECTION: "connection",
-  SOCKET_DISCONNECT: "disconnect",
-
-  TEST: "TEST"
+  SOCKET_DISCONNECT: "disconnect"
 };
 
 const socketActions = {
   AUTHENTICATE_FOUNTAIN: "AUTHENTICATE_FOUNTAIN",
   AUTHENTICATE_APP: "AUTHENTICATE_APP",
 
-  TEST_EMIT: "TEST_EMIT",
-
-  TEST_EMIT_MOBILE: "TEST_EMIT_MOBILE"
+  EMIT_TO_MOBILE: "EMIT_TO_MOBILE"
 };
 
 async function getSocketAuthenticationStatus(socket) {
@@ -177,16 +173,7 @@ module.exports = (io, logger, db) => {
 
     // Socket Action Handlers
 
-    socket.on(socketActions.TEST_EMIT, () => {
-      socket.send({
-        type: socketEvents.TEST,
-        data: {
-          test: "Honey"
-        }
-      });
-    });
-
-    socket.on(socketActions.TEST_EMIT_MOBILE, async () => {
+    socket.on(socketActions.EMIT_TO_MOBILE, async (mobileData) => {
       try {
         const reply = await hgetAsync(SOCKET_AUTH_STATUS_REDIS_KEY, socket.id);
 
@@ -199,10 +186,8 @@ module.exports = (io, logger, db) => {
           );
 
           socket.to(appSocketId).send({
-            type: "TEST",
-            data: {
-              test: "Your drink is dispensing!"
-            }
+            type: mobileData.type,
+            data: mobileData.data
           });
         }
       } catch (err) {

@@ -176,7 +176,7 @@ module.exports = (db) => {
     }
   );
 
-  authApi.post(
+  authApi.get(
     "/getNewScanCodeForSession",
     requestAuthMiddleware(),
     async (req, res) => {

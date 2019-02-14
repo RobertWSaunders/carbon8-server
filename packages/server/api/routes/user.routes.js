@@ -7,7 +7,19 @@ module.exports = (db) => {
 
   // gets a specific user by id
 
-  userApi.get("/:userId", (req, res) => {});
+  userApi.get("/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      const { user } = await userCtr.getUserById(userId);
+
+      return res.status(200).json({
+        user
+      });
+    } catch (err) {
+      sendError(res, err);
+    }
+  });
 
   // updates a specific user by id
 

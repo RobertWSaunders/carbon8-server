@@ -16,7 +16,7 @@ module.exports = (db) => {
   api.use("/users/", requestAuthMiddleware(), userRoutes(db));
 
   // fountain routes
-  api.use("/fountains/", requestAuthMiddleware(), fountainRoutes(db));
+  api.use("/fountains/", fountainRoutes(db));
 
   return api;
 };
